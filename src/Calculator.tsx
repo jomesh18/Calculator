@@ -3,20 +3,54 @@ import Digit from "./Digit";
 import Operator from "./Operator";
 
 const Calculator = () => {
+  const OPERATORS = "/*-+";
   const [val, setVal] = useState("0");
 
-  const onDigitClick = (digit: string) =>
+  const onClear = () => setVal("0");
+
+  const onDigitClick = (digit: string) => {
+    if (/[a-zA-Z]/.test(val)) onClear();
+    if (digit === "0" && val === "0") return;
     val === "0" ? setVal(digit) : setVal(val + digit);
-  const onOperatorClick = (operator: string) => {
-    setVal(val + operator);
   };
+
+  const onOperatorClick = (operator: string) => {
+    if (/[a-zA-Z]/.test(val)) onClear();
+    if (!val || !OPERATORS.includes(val[val.length - 1])) {
+      setVal(val + operator);
+      return;
+    }
+    if (val.length > 1 && OPERATORS.includes(val[val.length - 2])) {
+      setVal(val.slice(0, val.length - 2) + operator);
+      return;
+    }
+    if (operator === "-") {
+      setVal(val + operator);
+    } else {
+      setVal(val.slice(0, val.length - 1) + operator);
+    }
+  };
+
+  const onEqualsClick = (val: string) => {
+    let split = val.split(/([+-/*])/).filter((e) => e !== "");
+    for (let i = 1; i < val.length; i++) {
+      if (split[i] == "-" && OPERATORS.includes(split[i - 1])) {
+        split[i] = "(-1)*";
+      }
+    }
+    try {
+      setVal(eval(split.join("")));
+    } catch {
+      setVal("NAN");
+    }
+  };
+
   return (
     <div className="container">
       <div className="calculator">
         <div id="display">{val}</div>
-
         <div className="first">
-          <button onClick={() => setVal("0")} id="clear">
+          <button onClick={() => onClear()} id="clear">
             AC
           </button>
           <Operator id="divide" operator="/" handleClick={onOperatorClick} />
@@ -47,7 +81,9 @@ const Calculator = () => {
           <Digit digit="0" id="zero" handleClick={onDigitClick} />
           <button id="decimal">.</button>
         </div>
-        <button id="equals">=</button>
+        <button id="equals" onClick={() => onEqualsClick(val)}>
+          =
+        </button>
       </div>
     </div>
   );
