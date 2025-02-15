@@ -5,17 +5,26 @@ import Operator from "./Operator";
 const Calculator = () => {
   const OPERATORS = "/*-+";
   const [val, setVal] = useState("0");
+  const [nextVal, setNextVal] = useState(true);
+  const [isDecimal, setIsDecimal] = useState(false);
 
-  const onClear = () => setVal("0");
+  const onClear = () => {
+    setNextVal(true);
+    setIsDecimal(false);
+    setVal("0");
+  };
 
   const onDigitClick = (digit: string) => {
-    if (/[a-zA-Z]/.test(val)) onClear();
-    if (digit === "0" && val === "0") return;
+    if (nextVal && val === "0" && digit === "0") return;
+    if (nextVal) setNextVal(false);
+    // if (/[a-zA-Z]/.test(val)) onClear();
     val === "0" ? setVal(digit) : setVal(val + digit);
   };
 
   const onOperatorClick = (operator: string) => {
-    if (/[a-zA-Z]/.test(val)) onClear();
+    setNextVal(true);
+    setIsDecimal(false);
+    // if (/[a-zA-Z]/.test(val)) onClear();
     if (!val || !OPERATORS.includes(val[val.length - 1])) {
       setVal(val + operator);
       return;
@@ -32,6 +41,8 @@ const Calculator = () => {
   };
 
   const onEqualsClick = (val: string) => {
+    setNextVal(true);
+    setIsDecimal(false);
     let split = val.split(/([+-/*])/).filter((e) => e !== "");
     for (let i = 1; i < val.length; i++) {
       if (split[i] == "-" && OPERATORS.includes(split[i - 1])) {
@@ -45,6 +56,13 @@ const Calculator = () => {
     }
   };
 
+  const onDecimalClik = () => {
+    if (isDecimal) return;
+    setNextVal(false);
+    setIsDecimal(true);
+    setVal(val + ".");
+  };
+
   return (
     <div className="container">
       <div className="calculator">
@@ -54,7 +72,7 @@ const Calculator = () => {
             AC
           </button>
           <Operator id="divide" operator="/" handleClick={onOperatorClick} />
-          <Operator id="multipy" operator="*" handleClick={onOperatorClick} />
+          <Operator id="multiply" operator="*" handleClick={onOperatorClick} />
         </div>
 
         <div className="second">
@@ -79,7 +97,9 @@ const Calculator = () => {
 
         <div className="fifth">
           <Digit digit="0" id="zero" handleClick={onDigitClick} />
-          <button id="decimal">.</button>
+          <button id="decimal" onClick={() => onDecimalClik()}>
+            .
+          </button>
         </div>
         <button id="equals" onClick={() => onEqualsClick(val)}>
           =
